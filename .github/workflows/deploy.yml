@@ -1,0 +1,37 @@
+# CI/CD: Lint → Test → Deploy to Hugging Face Space
+#
+# Secrets needed:
+#   HF_TOKEN — Hugging Face write token (GitHub repo secret)
+#
+# Variables needed:
+#   HF_SPACE_NAME — e.g. "your-org/studypod" (GitHub repo variable)
+
+name: Deploy to HF Space
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: pytest tests/ -v
+
+  deploy:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git remote add hf https://huggingface.co/spaces/${{ vars.HF_SPACE_NAME }}
+          git push --force https://user:$HF_TOKEN@huggingface.co/spaces/${{ vars.HF_SPACE_NAME }} main

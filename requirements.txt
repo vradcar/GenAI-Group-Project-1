@@ -1,0 +1,27 @@
+# Frontend
+gradio
+
+# LLM
+groq
+
+# Embeddings & Vector Store
+chromadb
+sentence-transformers
+
+# Document extraction
+PyMuPDF
+python-pptx
+trafilatura
+
+# Chunking
+langchain-text-splitters
+
+# Text-to-speech
+edge-tts
+
+# Utilities
+python-dotenv
+
+# Dev / Testing
+pytest
+ruff
