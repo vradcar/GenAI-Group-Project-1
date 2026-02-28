@@ -10,7 +10,13 @@ Responsibilities:
 Run:
   python app.py
 """
+# logging 
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
 import gradio as gr
 
 user_data = {}  # {username: [notebook1, notebook2,...]}
