@@ -7,7 +7,7 @@ import pytest
 from utils.extractors import extract_pdf, extract_pptx, extract_txt, extract_url
 
 
-# ── extract_txt ───────────────────────────────────────────────────────────────
+# extract_txt
 
 def test_extract_txt_returns_content(tmp_path):
     f = tmp_path / "sample.txt"
@@ -34,8 +34,6 @@ def test_extract_txt_multiline(tmp_path):
     f.write_text(content, encoding="utf-8")
     assert extract_txt(str(f)) == content
 
-
-# ── extract_pdf ───────────────────────────────────────────────────────────────
 
 def test_extract_pdf_returns_text():
     mock_page = MagicMock()
@@ -82,9 +80,6 @@ def test_extract_pdf_multiple_pages():
 
     for i in range(1, 4):
         assert f"Page {i} text." in result
-
-
-# ── extract_pptx ──────────────────────────────────────────────────────────────
 
 def _make_shape(text: str) -> MagicMock:
     shape = MagicMock()
@@ -143,8 +138,6 @@ def test_extract_pptx_skips_blank_shapes():
     assert "Non-blank text" in result
     assert result.strip() == "Non-blank text"
 
-
-# ── extract_url ───────────────────────────────────────────────────────────────
 
 def test_extract_url_success():
     with patch("trafilatura.fetch_url", return_value="<html>content</html>"), \

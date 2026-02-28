@@ -7,9 +7,7 @@ import pytest
 
 from core.ingestion import ingest_file, ingest_url
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 LONG_TEXT = "This is a chunk of meaningful content. " * 40  # > 1000 chars
 
@@ -30,10 +28,7 @@ def _patch_deps(
         patch("storage.vector_store.add_documents"),
     )
 
-
-# ---------------------------------------------------------------------------
 # ingest_file — validation
-# ---------------------------------------------------------------------------
 
 def test_ingest_file_rejects_invalid_extension(tmp_path):
     f = tmp_path / "data.csv"
@@ -63,9 +58,7 @@ def test_ingest_file_rejects_empty_extraction(tmp_path):
             ingest_file("user", "nb1", str(f))
 
 
-# ---------------------------------------------------------------------------
 # ingest_file — happy path (one test per allowed extension)
-# ---------------------------------------------------------------------------
 
 def test_ingest_file_txt_returns_ok_dict(tmp_path):
     f = tmp_path / "notes.txt"
@@ -115,9 +108,7 @@ def test_ingest_file_pptx(tmp_path):
     mock_add.assert_called_once()
 
 
-# ---------------------------------------------------------------------------
 # ingest_file — vector store contract
-# ---------------------------------------------------------------------------
 
 def test_ingest_file_passes_correct_metadata_to_vector_store(tmp_path):
     f = tmp_path / "doc.txt"
@@ -139,9 +130,8 @@ def test_ingest_file_passes_correct_metadata_to_vector_store(tmp_path):
         assert meta["source_type"] == "file"
 
 
-# ---------------------------------------------------------------------------
 # ingest_file — directory creation
-# ---------------------------------------------------------------------------
+
 
 def test_ingest_file_creates_raw_and_extracted_dirs(tmp_path):
     f = tmp_path / "doc.txt"
@@ -156,9 +146,7 @@ def test_ingest_file_creates_raw_and_extracted_dirs(tmp_path):
     assert (nb_dir / "files_extracted").is_dir()
 
 
-# ---------------------------------------------------------------------------
 # ingest_url — validation
-# ---------------------------------------------------------------------------
 
 def test_ingest_url_raises_on_empty_extraction(tmp_path):
     with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
@@ -175,9 +163,7 @@ def test_ingest_url_propagates_extractor_error():
             ingest_url("user", "nb1", "https://broken.example.com")
 
 
-# ---------------------------------------------------------------------------
 # ingest_url — happy path
-# ---------------------------------------------------------------------------
 
 def test_ingest_url_returns_ok_dict(tmp_path):
     with patch("core.ingestion.USERS_DIR", str(tmp_path)), \

@@ -64,23 +64,23 @@ def ingest_file(username: str, notebook_id: str, file_path: str) -> dict:
     src = Path(file_path)
     ext = src.suffix.lower()
 
-    # 1. Validate file extension
+    # Validate file extension
     if ext not in ALLOWED_EXTENSIONS:
         raise ValueError(
             f"Unsupported file type '{ext}'. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
         )
 
-    # 2. Validate file size
+    # Validate file size
     size_mb = src.stat().st_size / (1024 * 1024)
     if size_mb > MAX_FILE_SIZE_MB:
         raise ValueError(
             f"File size ({size_mb:.1f} MB) exceeds the {MAX_FILE_SIZE_MB} MB limit."
         )
 
-    # 3. Sanitize filename
+    # Sanitize filename
     safe_name = sanitize_filename(src.name)
 
-    # 4. Set up directory structure and copy raw file
+    # Set up directory structure and copy raw file
     nb_dir = _notebook_dir(username, notebook_id)
     raw_dir = nb_dir / "files_raw"
     extracted_dir = nb_dir / "files_extracted"
@@ -90,7 +90,7 @@ def ingest_file(username: str, notebook_id: str, file_path: str) -> dict:
     raw_path = validate_path(str(raw_dir / safe_name), str(nb_dir))
     shutil.copy2(src, raw_path)
 
-    # 5. Extract text with the appropriate extractor
+    # Extract text with the appropriate extractor
     if ext == ".pdf":
         text = extractors.extract_pdf(str(raw_path))
     elif ext == ".pptx":
@@ -101,16 +101,16 @@ def ingest_file(username: str, notebook_id: str, file_path: str) -> dict:
     if not text.strip():
         raise ValueError("No text could be extracted from the file.")
 
-    # 6. Save extracted text
+    # Save extracted text
     extracted_path = validate_path(
         str(extracted_dir / (src.stem + ".txt")), str(nb_dir)
     )
     Path(extracted_path).write_text(text, encoding="utf-8")
 
-    # 7. Chunk text
+    # Chunk text
     chunks = _chunk_text(text)
 
-    # 8. Build per-chunk metadata and upsert into ChromaDB
+    # Build per-chunk metadata and upsert into ChromaDB
     metadatas = [
         {"source": safe_name, "chunk_index": i, "source_type": "file"}
         for i in range(len(chunks))
@@ -139,18 +139,15 @@ def ingest_url(username: str, notebook_id: str, url: str) -> dict:
     Returns a status dict: {"status", "source", "chunks", "extracted_chars"}.
     Raises ValueError if the URL cannot be fetched or yields no text.
     """
-    # 1. Extract text
     text = extractors.extract_url(url)
 
     if not text.strip():
         raise ValueError("No text could be extracted from the URL.")
 
-    # 2. Derive a safe filename stem from the URL
     parsed = urlparse(url)
     raw_stem = parsed.path.rstrip("/").split("/")[-1] or parsed.netloc.replace(".", "_")
     safe_stem = sanitize_filename(raw_stem)[:80] or "webpage"
 
-    # 3. Set up directory and save extracted text
     nb_dir = _notebook_dir(username, notebook_id)
     extracted_dir = nb_dir / "files_extracted"
     extracted_dir.mkdir(parents=True, exist_ok=True)
@@ -160,10 +157,8 @@ def ingest_url(username: str, notebook_id: str, url: str) -> dict:
     )
     Path(extracted_path).write_text(text, encoding="utf-8")
 
-    # 4. Chunk text
     chunks = _chunk_text(text)
 
-    # 5. Build per-chunk metadata and upsert into ChromaDB
     metadatas = [
         {"source": url, "chunk_index": i, "source_type": "url"}
         for i in range(len(chunks))
