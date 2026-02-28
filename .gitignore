@@ -6,3 +6,16 @@ __pycache__/
 .venv/
 venv/
 .ruff_cache/
+
+# IDE
+.idea/
+
+# Speckit / planning artifacts
+.specify/
+specs/
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
