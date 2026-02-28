@@ -1,23 +1,15 @@
 """Tests for core/ingestion.py"""
 
 from pathlib import Path
-<<<<<<< Updated upstream
-from unittest.mock import MagicMock, call, patch
-=======
 from unittest.mock import MagicMock, patch
->>>>>>> Stashed changes
 
 import pytest
 
 from core.ingestion import ingest_file, ingest_url
 
-<<<<<<< Updated upstream
-# Helpers
-=======
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 LONG_TEXT = "This is a chunk of meaningful content. " * 40  # > 1000 chars
 
@@ -33,23 +25,15 @@ def _patch_deps(
     return (
         patch("core.ingestion.USERS_DIR", users_dir),
         patch("utils.security.sanitize_filename", return_value=safe_name),
-<<<<<<< Updated upstream
-        patch("utils.security.validate_path", side_effect=lambda p, _root: Path(p)),
-=======
         patch("utils.security.validate_path", side_effect=lambda p, _: Path(p)),
->>>>>>> Stashed changes
         patch(extractor_fn, return_value=extracted_text),
         patch("storage.vector_store.add_documents"),
     )
 
-<<<<<<< Updated upstream
-# ingest_file — validation
-=======
 
 # ---------------------------------------------------------------------------
 # ingest_file — validation
 # ---------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 def test_ingest_file_rejects_invalid_extension(tmp_path):
     f = tmp_path / "data.csv"
@@ -78,14 +62,10 @@ def test_ingest_file_rejects_empty_extraction(tmp_path):
         with pytest.raises(ValueError, match="No text"):
             ingest_file("user", "nb1", str(f))
 
-<<<<<<< Updated upstream
-# ingest_file — happy path (one test per allowed extension)
-=======
 
 # ---------------------------------------------------------------------------
 # ingest_file — happy path (one test per allowed extension)
 # ---------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 def test_ingest_file_txt_returns_ok_dict(tmp_path):
     f = tmp_path / "notes.txt"
@@ -134,14 +114,10 @@ def test_ingest_file_pptx(tmp_path):
     assert result["status"] == "ok"
     mock_add.assert_called_once()
 
-<<<<<<< Updated upstream
-# ingest_file — vector store contract
-=======
 
 # ---------------------------------------------------------------------------
 # ingest_file — vector store contract
 # ---------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 def test_ingest_file_passes_correct_metadata_to_vector_store(tmp_path):
     f = tmp_path / "doc.txt"
@@ -162,14 +138,10 @@ def test_ingest_file_passes_correct_metadata_to_vector_store(tmp_path):
         assert meta["chunk_index"] == i
         assert meta["source_type"] == "file"
 
-<<<<<<< Updated upstream
-# ingest_file — directory creation
-=======
 
 # ---------------------------------------------------------------------------
 # ingest_file — directory creation
 # ---------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 def test_ingest_file_creates_raw_and_extracted_dirs(tmp_path):
     f = tmp_path / "doc.txt"
@@ -183,14 +155,10 @@ def test_ingest_file_creates_raw_and_extracted_dirs(tmp_path):
     assert (nb_dir / "files_raw").is_dir()
     assert (nb_dir / "files_extracted").is_dir()
 
-<<<<<<< Updated upstream
-# ingest_url — validation
-=======
 
 # ---------------------------------------------------------------------------
 # ingest_url — validation
 # ---------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 def test_ingest_url_raises_on_empty_extraction(tmp_path):
     with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
@@ -201,23 +169,15 @@ def test_ingest_url_raises_on_empty_extraction(tmp_path):
             ingest_url("user", "nb1", "https://example.com")
 
 
-<<<<<<< Updated upstream
-def test_ingest_url_propagates_extractor_error(tmp_path):
-=======
 def test_ingest_url_propagates_extractor_error():
->>>>>>> Stashed changes
     with patch("utils.extractors.extract_url", side_effect=ValueError("Could not fetch")):
         with pytest.raises(ValueError, match="Could not fetch"):
             ingest_url("user", "nb1", "https://broken.example.com")
 
 
-<<<<<<< Updated upstream
-# ingest_url — happy path
-=======
 # ---------------------------------------------------------------------------
 # ingest_url — happy path
 # ---------------------------------------------------------------------------
->>>>>>> Stashed changes
 
 def test_ingest_url_returns_ok_dict(tmp_path):
     with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
@@ -243,11 +203,7 @@ def test_ingest_url_passes_correct_metadata_to_vector_store(tmp_path):
          patch("storage.vector_store.add_documents") as mock_add:
         ingest_url("bob", "nb-99", url)
 
-<<<<<<< Updated upstream
-    username_arg, notebook_id_arg, chunks_arg, metadatas_arg = mock_add.call_args[0]
-=======
     username_arg, notebook_id_arg, _, metadatas_arg = mock_add.call_args[0]
->>>>>>> Stashed changes
     assert username_arg == "bob"
     assert notebook_id_arg == "nb-99"
     for i, meta in enumerate(metadatas_arg):

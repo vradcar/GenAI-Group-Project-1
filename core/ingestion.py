@@ -64,38 +64,23 @@ def ingest_file(username: str, notebook_id: str, file_path: str) -> dict:
     src = Path(file_path)
     ext = src.suffix.lower()
 
-<<<<<<< Updated upstream
-    # Validate file extension
-=======
     # 1. Validate file extension
->>>>>>> Stashed changes
     if ext not in ALLOWED_EXTENSIONS:
         raise ValueError(
             f"Unsupported file type '{ext}'. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
         )
 
-<<<<<<< Updated upstream
-    # Validate file size
-=======
     # 2. Validate file size
->>>>>>> Stashed changes
     size_mb = src.stat().st_size / (1024 * 1024)
     if size_mb > MAX_FILE_SIZE_MB:
         raise ValueError(
             f"File size ({size_mb:.1f} MB) exceeds the {MAX_FILE_SIZE_MB} MB limit."
         )
 
-<<<<<<< Updated upstream
-    # Sanitize filename
-    safe_name = sanitize_filename(src.name)
-
-    # Set up directory structure and copy raw file
-=======
     # 3. Sanitize filename
     safe_name = sanitize_filename(src.name)
 
     # 4. Set up directory structure and copy raw file
->>>>>>> Stashed changes
     nb_dir = _notebook_dir(username, notebook_id)
     raw_dir = nb_dir / "files_raw"
     extracted_dir = nb_dir / "files_extracted"
@@ -105,11 +90,7 @@ def ingest_file(username: str, notebook_id: str, file_path: str) -> dict:
     raw_path = validate_path(str(raw_dir / safe_name), str(nb_dir))
     shutil.copy2(src, raw_path)
 
-<<<<<<< Updated upstream
-    # Extract text with the appropriate extractor
-=======
     # 5. Extract text with the appropriate extractor
->>>>>>> Stashed changes
     if ext == ".pdf":
         text = extractors.extract_pdf(str(raw_path))
     elif ext == ".pptx":
@@ -120,27 +101,16 @@ def ingest_file(username: str, notebook_id: str, file_path: str) -> dict:
     if not text.strip():
         raise ValueError("No text could be extracted from the file.")
 
-<<<<<<< Updated upstream
-    # Save extracted text
-=======
     # 6. Save extracted text
->>>>>>> Stashed changes
     extracted_path = validate_path(
         str(extracted_dir / (src.stem + ".txt")), str(nb_dir)
     )
     Path(extracted_path).write_text(text, encoding="utf-8")
 
-<<<<<<< Updated upstream
-    # Chunk text
-    chunks = _chunk_text(text)
-
-    # Build per-chunk metadata and upsert into ChromaDB
-=======
     # 7. Chunk text
     chunks = _chunk_text(text)
 
     # 8. Build per-chunk metadata and upsert into ChromaDB
->>>>>>> Stashed changes
     metadatas = [
         {"source": safe_name, "chunk_index": i, "source_type": "file"}
         for i in range(len(chunks))
@@ -169,30 +139,18 @@ def ingest_url(username: str, notebook_id: str, url: str) -> dict:
     Returns a status dict: {"status", "source", "chunks", "extracted_chars"}.
     Raises ValueError if the URL cannot be fetched or yields no text.
     """
-<<<<<<< Updated upstream
-   
-=======
     # 1. Extract text
->>>>>>> Stashed changes
     text = extractors.extract_url(url)
 
     if not text.strip():
         raise ValueError("No text could be extracted from the URL.")
 
-<<<<<<< Updated upstream
-    # Derive a safe filename stem from the URL
-=======
     # 2. Derive a safe filename stem from the URL
->>>>>>> Stashed changes
     parsed = urlparse(url)
     raw_stem = parsed.path.rstrip("/").split("/")[-1] or parsed.netloc.replace(".", "_")
     safe_stem = sanitize_filename(raw_stem)[:80] or "webpage"
 
-<<<<<<< Updated upstream
-    # Set up directory and save extracted text
-=======
     # 3. Set up directory and save extracted text
->>>>>>> Stashed changes
     nb_dir = _notebook_dir(username, notebook_id)
     extracted_dir = nb_dir / "files_extracted"
     extracted_dir.mkdir(parents=True, exist_ok=True)
@@ -202,15 +160,10 @@ def ingest_url(username: str, notebook_id: str, url: str) -> dict:
     )
     Path(extracted_path).write_text(text, encoding="utf-8")
 
-<<<<<<< Updated upstream
-    chunks = _chunk_text(text)
-
-=======
     # 4. Chunk text
     chunks = _chunk_text(text)
 
     # 5. Build per-chunk metadata and upsert into ChromaDB
->>>>>>> Stashed changes
     metadatas = [
         {"source": url, "chunk_index": i, "source_type": "url"}
         for i in range(len(chunks))
