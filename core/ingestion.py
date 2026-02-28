@@ -19,20 +19,15 @@ from urllib.parse import urlparse
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from storage import vector_store
+from storage.notebook_store import get_notebook_dir, get_raw_dir, get_extracted_dir
 from utils import extractors
 from utils.config import (
     ALLOWED_EXTENSIONS,
     CHUNK_OVERLAP,
     CHUNK_SIZE,
     MAX_FILE_SIZE_MB,
-    USERS_DIR,
 )
 from utils.security import sanitize_filename, validate_path
-
-
-def _notebook_dir(username: str, notebook_id: str) -> Path:
-    """Return the base directory for a notebook."""
-    return Path(USERS_DIR) / username / notebook_id
 
 
 def _chunk_text(text: str) -> list[str]:
@@ -81,9 +76,9 @@ def ingest_file(username: str, notebook_id: str, file_path: str) -> dict:
     safe_name = sanitize_filename(src.name)
 
     # 4. Set up directory structure and copy raw file
-    nb_dir = _notebook_dir(username, notebook_id)
-    raw_dir = nb_dir / "files_raw"
-    extracted_dir = nb_dir / "files_extracted"
+    nb_dir = get_notebook_dir(username, notebook_id)
+    raw_dir = get_raw_dir(username, notebook_id)
+    extracted_dir = get_extracted_dir(username, notebook_id)
     raw_dir.mkdir(parents=True, exist_ok=True)
     extracted_dir.mkdir(parents=True, exist_ok=True)
 
@@ -151,8 +146,8 @@ def ingest_url(username: str, notebook_id: str, url: str) -> dict:
     safe_stem = sanitize_filename(raw_stem)[:80] or "webpage"
 
     # 3. Set up directory and save extracted text
-    nb_dir = _notebook_dir(username, notebook_id)
-    extracted_dir = nb_dir / "files_extracted"
+    nb_dir = get_notebook_dir(username, notebook_id)
+    extracted_dir = get_extracted_dir(username, notebook_id)
     extracted_dir.mkdir(parents=True, exist_ok=True)
 
     extracted_path = validate_path(

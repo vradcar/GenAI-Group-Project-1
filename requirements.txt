@@ -1,27 +1,27 @@
 # Frontend
-gradio
+gradio>=6.8,<7
 
 # LLM
-groq
+groq>=1.0,<2
 
 # Embeddings & Vector Store
-chromadb
-sentence-transformers
+chromadb>=1.5,<2
+sentence-transformers>=5.2,<6
 
 # Document extraction
-PyMuPDF
-python-pptx
-trafilatura
+PyMuPDF>=1.27,<2
+python-pptx>=1.0,<2
+trafilatura>=2.0,<3
 
 # Chunking
-langchain-text-splitters
+langchain-text-splitters>=1.1,<2
 
 # Text-to-speech
-edge-tts
+edge-tts>=7.2,<8
 
 # Utilities
-python-dotenv
+python-dotenv>=1.0,<2
 
 # Dev / Testing
-pytest
-ruff
+pytest>=7.4,<9
+ruff>=0.15

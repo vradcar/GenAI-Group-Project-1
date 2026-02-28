@@ -14,18 +14,35 @@ from core.ingestion import ingest_file, ingest_url
 LONG_TEXT = "This is a chunk of meaningful content. " * 40  # > 1000 chars
 
 
+def _make_dirs(tmp_path, username="user", notebook_id="nb1"):
+    """Create the notebook directory structure that notebook_store would create."""
+    nb_dir = tmp_path / username / notebook_id
+    raw_dir = nb_dir / "files_raw"
+    extracted_dir = nb_dir / "files_extracted"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    extracted_dir.mkdir(parents=True, exist_ok=True)
+    return nb_dir, raw_dir, extracted_dir
+
+
 def _patch_deps(
     *,
-    users_dir: str,
+    tmp_path,
+    username: str = "user",
+    notebook_id: str = "nb1",
     safe_name: str = "doc.txt",
     extracted_text: str = LONG_TEXT,
     extractor_fn: str = "utils.extractors.extract_txt",
 ):
-    """Return a context manager that mocks the external dependencies of ingestion."""
+    """Return a tuple of context managers that mock external dependencies."""
+    nb_dir = tmp_path / username / notebook_id
+    raw_dir = nb_dir / "files_raw"
+    extracted_dir = nb_dir / "files_extracted"
     return (
-        patch("core.ingestion.USERS_DIR", users_dir),
-        patch("utils.security.sanitize_filename", return_value=safe_name),
-        patch("utils.security.validate_path", side_effect=lambda p, _: Path(p)),
+        patch("core.ingestion.get_notebook_dir", return_value=nb_dir),
+        patch("core.ingestion.get_raw_dir", return_value=raw_dir),
+        patch("core.ingestion.get_extracted_dir", return_value=extracted_dir),
+        patch("core.ingestion.sanitize_filename", return_value=safe_name),
+        patch("core.ingestion.validate_path", side_effect=lambda p, _: Path(p)),
         patch(extractor_fn, return_value=extracted_text),
         patch("storage.vector_store.add_documents"),
     )
@@ -55,10 +72,12 @@ def test_ingest_file_rejects_oversized_file(tmp_path):
 def test_ingest_file_rejects_empty_extraction(tmp_path):
     f = tmp_path / "blank.txt"
     f.write_text("   ")
-    with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
-         patch("utils.security.sanitize_filename", return_value="blank.txt"), \
-         patch("utils.security.validate_path", side_effect=lambda p, _: Path(p)), \
-         patch("utils.extractors.extract_txt", return_value="   "):
+    _make_dirs(tmp_path)
+    patches = _patch_deps(tmp_path=tmp_path, extracted_text="   ")
+    # Override extractor to return blank
+    patched = list(patches)
+    patched[5] = patch("utils.extractors.extract_txt", return_value="   ")
+    with patched[0], patched[1], patched[2], patched[3], patched[4], patched[5], patched[6]:
         with pytest.raises(ValueError, match="No text"):
             ingest_file("user", "nb1", str(f))
 
@@ -71,8 +90,9 @@ def test_ingest_file_txt_returns_ok_dict(tmp_path):
     f = tmp_path / "notes.txt"
     f.write_text(LONG_TEXT, encoding="utf-8")
 
-    p1, p2, p3, p4, p5 = _patch_deps(users_dir=str(tmp_path))
-    with p1, p2, p3, p4 as mock_extract, p5 as mock_add:
+    _make_dirs(tmp_path)
+    p1, p2, p3, p4, p5, p6, p7 = _patch_deps(tmp_path=tmp_path)
+    with p1, p2, p3, p4, p5, p6 as mock_extract, p7 as mock_add:
         result = ingest_file("user", "nb1", str(f))
 
     assert result["status"] == "ok"
@@ -87,12 +107,13 @@ def test_ingest_file_pdf(tmp_path):
     f = tmp_path / "report.pdf"
     f.write_bytes(b"%PDF fake")
 
-    p1, p2, p3, p4, p5 = _patch_deps(
-        users_dir=str(tmp_path),
+    _make_dirs(tmp_path)
+    p1, p2, p3, p4, p5, p6, p7 = _patch_deps(
+        tmp_path=tmp_path,
         safe_name="report.pdf",
         extractor_fn="utils.extractors.extract_pdf",
     )
-    with p1, p2, p3, p4, p5 as mock_add:
+    with p1, p2, p3, p4, p5, p6, p7 as mock_add:
         result = ingest_file("user", "nb1", str(f))
 
     assert result["status"] == "ok"
@@ -103,12 +124,13 @@ def test_ingest_file_pptx(tmp_path):
     f = tmp_path / "slides.pptx"
     f.write_bytes(b"PK fake")
 
-    p1, p2, p3, p4, p5 = _patch_deps(
-        users_dir=str(tmp_path),
+    _make_dirs(tmp_path)
+    p1, p2, p3, p4, p5, p6, p7 = _patch_deps(
+        tmp_path=tmp_path,
         safe_name="slides.pptx",
         extractor_fn="utils.extractors.extract_pptx",
     )
-    with p1, p2, p3, p4, p5 as mock_add:
+    with p1, p2, p3, p4, p5, p6, p7 as mock_add:
         result = ingest_file("user", "nb1", str(f))
 
     assert result["status"] == "ok"
@@ -123,8 +145,9 @@ def test_ingest_file_passes_correct_metadata_to_vector_store(tmp_path):
     f = tmp_path / "doc.txt"
     f.write_text(LONG_TEXT, encoding="utf-8")
 
-    p1, p2, p3, p4, p5 = _patch_deps(users_dir=str(tmp_path))
-    with p1, p2, p3, p4, p5 as mock_add:
+    _make_dirs(tmp_path, "alice", "nb-42")
+    p1, p2, p3, p4, p5, p6, p7 = _patch_deps(tmp_path=tmp_path, username="alice", notebook_id="nb-42")
+    with p1, p2, p3, p4, p5, p6, p7 as mock_add:
         ingest_file("alice", "nb-42", str(f))
 
     args = mock_add.call_args
@@ -147,8 +170,9 @@ def test_ingest_file_creates_raw_and_extracted_dirs(tmp_path):
     f = tmp_path / "doc.txt"
     f.write_text(LONG_TEXT, encoding="utf-8")
 
-    p1, p2, p3, p4, p5 = _patch_deps(users_dir=str(tmp_path))
-    with p1, p2, p3, p4, p5:
+    _make_dirs(tmp_path)
+    p1, p2, p3, p4, p5, p6, p7 = _patch_deps(tmp_path=tmp_path)
+    with p1, p2, p3, p4, p5, p6, p7:
         ingest_file("user", "nb1", str(f))
 
     nb_dir = tmp_path / "user" / "nb1"
@@ -161,7 +185,10 @@ def test_ingest_file_creates_raw_and_extracted_dirs(tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_ingest_url_raises_on_empty_extraction(tmp_path):
-    with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
+    _make_dirs(tmp_path)
+    nb_dir = tmp_path / "user" / "nb1"
+    with patch("core.ingestion.get_notebook_dir", return_value=nb_dir), \
+         patch("core.ingestion.get_extracted_dir", return_value=nb_dir / "files_extracted"), \
          patch("utils.security.sanitize_filename", return_value="page"), \
          patch("utils.security.validate_path", side_effect=lambda p, _: Path(p)), \
          patch("utils.extractors.extract_url", return_value="   "):
@@ -180,7 +207,10 @@ def test_ingest_url_propagates_extractor_error():
 # ---------------------------------------------------------------------------
 
 def test_ingest_url_returns_ok_dict(tmp_path):
-    with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
+    _make_dirs(tmp_path)
+    nb_dir = tmp_path / "user" / "nb1"
+    with patch("core.ingestion.get_notebook_dir", return_value=nb_dir), \
+         patch("core.ingestion.get_extracted_dir", return_value=nb_dir / "files_extracted"), \
          patch("utils.security.sanitize_filename", return_value="article"), \
          patch("utils.security.validate_path", side_effect=lambda p, _: Path(p)), \
          patch("utils.extractors.extract_url", return_value=LONG_TEXT), \
@@ -196,7 +226,10 @@ def test_ingest_url_returns_ok_dict(tmp_path):
 
 def test_ingest_url_passes_correct_metadata_to_vector_store(tmp_path):
     url = "https://example.com/news"
-    with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
+    _make_dirs(tmp_path, "bob", "nb-99")
+    nb_dir = tmp_path / "bob" / "nb-99"
+    with patch("core.ingestion.get_notebook_dir", return_value=nb_dir), \
+         patch("core.ingestion.get_extracted_dir", return_value=nb_dir / "files_extracted"), \
          patch("utils.security.sanitize_filename", return_value="news"), \
          patch("utils.security.validate_path", side_effect=lambda p, _: Path(p)), \
          patch("utils.extractors.extract_url", return_value=LONG_TEXT), \
@@ -213,7 +246,10 @@ def test_ingest_url_passes_correct_metadata_to_vector_store(tmp_path):
 
 
 def test_ingest_url_creates_extracted_dir(tmp_path):
-    with patch("core.ingestion.USERS_DIR", str(tmp_path)), \
+    _make_dirs(tmp_path)
+    nb_dir = tmp_path / "user" / "nb1"
+    with patch("core.ingestion.get_notebook_dir", return_value=nb_dir), \
+         patch("core.ingestion.get_extracted_dir", return_value=nb_dir / "files_extracted"), \
          patch("utils.security.sanitize_filename", return_value="page"), \
          patch("utils.security.validate_path", side_effect=lambda p, _: Path(p)), \
          patch("utils.extractors.extract_url", return_value=LONG_TEXT), \

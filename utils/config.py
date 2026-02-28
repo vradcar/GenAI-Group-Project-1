@@ -3,6 +3,7 @@ Configuration — environment variables, model names, constants.
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +20,7 @@ LLM_MAX_TOKENS = 1024
 
 # ── Embeddings ───────────────────────────────────────────────
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+EMBEDDING_DEVICE = "cpu"
 
 # ── Chunking ─────────────────────────────────────────────────
 CHUNK_SIZE = 1000
@@ -34,6 +36,7 @@ TTS_VOICE = "en-US-AriaNeural"
 
 # ── Storage ──────────────────────────────────────────────────
 DATA_DIR = os.getenv("DATA_DIR", "data")
+DATA_ROOT = Path(DATA_DIR)
 USERS_DIR = os.path.join(DATA_DIR, "users")
 
 # ── Upload limits ────────────────────────────────────────────
