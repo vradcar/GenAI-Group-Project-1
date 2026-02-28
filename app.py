@@ -10,7 +10,13 @@ Responsibilities:
 Run:
   python app.py
 """
+# logging 
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+)
 import gradio as gr
 
 
@@ -24,3 +30,4 @@ def build_app() -> gr.Blocks:
 if __name__ == "__main__":
     app = build_app()
     app.launch()
+
