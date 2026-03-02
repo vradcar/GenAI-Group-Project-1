@@ -7,7 +7,7 @@ Run: python test_ui.py
 import gradio as gr
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from storage.vector_store import add_documents, query_collection, delete_collection
+from storage.vector_store import add_documents, delete_collection
 from core.rag import query as rag_query
 from core.llm_client import complete
 from utils.config import CHUNK_SIZE, CHUNK_OVERLAP

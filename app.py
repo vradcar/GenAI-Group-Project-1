@@ -499,8 +499,8 @@ def build_app() -> gr.Blocks:
                 return "", gr.update(visible=True)
             try:
                 result = generate_podcast(username, nb_id)
-                if result is None:
-                    return "⚠️ Podcast generation is not yet implemented.", gr.update(visible=False, value=None)
+                if result is None or result == (None, None):
+                    return "⚠️ No sources found to generate podcast.", gr.update(visible=False, value=None)
                 transcript_path, audio_path = result
                 # Read the transcript markdown
                 try:

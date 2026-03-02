@@ -6,8 +6,7 @@ but mocks the Groq LLM since no API key is available in CI.
 """
 
 import textwrap
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 

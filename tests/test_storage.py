@@ -1,10 +1,5 @@
 """Tests for storage/ modules"""
 
-# TODO: Test notebook CRUD (create, list, get, delete)
-# TODO: Test chat store (append, read history)
-# TODO: Test vector store (add, query, delete)
-# TODO: Test artifact store (save, list, get)
-
 import json
 import os
 import sys
@@ -56,13 +51,16 @@ def notebook():
     meta = nb_store.create_notebook(USER, f"Test NB {uuid.uuid4().hex[:6]}")
     yield meta
     try:
+        # Clear ChromaDB client cache to release file locks (Windows)
+        if _CHROMA_AVAILABLE:
+            vec_store._clients.clear()
         nb_store.delete_notebook(USER, meta["id"])
-    except KeyError:
-        pass   # test may have deleted it already
+    except (KeyError, PermissionError, OSError):
+        pass   # test may have deleted it, or ChromaDB still holds file locks
 
 
 # ===========================================================================
-# TODO: Test notebook CRUD (create, list, get, delete)
+# Notebook CRUD
 # ===========================================================================
 
 class TestCreateNotebook:
@@ -219,7 +217,7 @@ class TestDeleteNotebook:
 
 
 # ===========================================================================
-# TODO: Test chat store (append, read history)
+# Chat store
 # ===========================================================================
 
 class TestAppendMessage:
@@ -290,7 +288,7 @@ class TestAppendMessage:
         chat_store.append_message(USER, notebook["id"], {"role": "user", "content": "A"})
         chat_store.append_message(USER, notebook["id"], {"role": "assistant", "content": "B"})
         msg_file = nb_store.get_chat_dir(USER, notebook["id"]) / "messages.jsonl"
-        lines = [l for l in msg_file.read_text().splitlines() if l.strip()]
+        lines = [line for line in msg_file.read_text().splitlines() if line.strip()]
         assert len(lines) == 2
         # Each line must be valid JSON
         for line in lines:
@@ -366,7 +364,7 @@ class TestGetHistory:
 
 
 # ===========================================================================
-# TODO: Test vector store (add, query, delete)
+# Vector store
 # ===========================================================================
 
 @pytest.mark.skipif(not _CHROMA_AVAILABLE, reason="chromadb not installed")
@@ -487,7 +485,7 @@ class TestVectorStore:
 
 
 # ===========================================================================
-# TODO: Test artifact store (save, list, get)
+# Artifact store
 # ===========================================================================
 
 class TestSaveArtifact:

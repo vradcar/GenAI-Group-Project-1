@@ -12,7 +12,6 @@ Responsibilities:
 """
 
 import logging
-from pathlib import Path
 from datetime import datetime
 
 from core import llm_client

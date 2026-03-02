@@ -19,7 +19,6 @@ import tempfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 from utils.config import DATA_ROOT
 from utils.security import safe_path, sanitize_notebook_name, sanitize_username

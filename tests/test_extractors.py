@@ -102,7 +102,7 @@ def test_extract_pptx_returns_text():
     mock_prs = MagicMock()
     mock_prs.slides = [mock_slide]
 
-    with patch("pptx.Presentation", return_value=mock_prs):
+    with patch("utils.extractors.Presentation", return_value=mock_prs):
         result = extract_pptx("deck.pptx")
 
     assert "Title slide" in result
@@ -120,7 +120,7 @@ def test_extract_pptx_multiple_slides():
     mock_prs = MagicMock()
     mock_prs.slides = slides
 
-    with patch("pptx.Presentation", return_value=mock_prs):
+    with patch("utils.extractors.Presentation", return_value=mock_prs):
         result = extract_pptx("multi.pptx")
 
     for i in range(1, 4):
@@ -137,7 +137,7 @@ def test_extract_pptx_skips_blank_shapes():
     mock_prs = MagicMock()
     mock_prs.slides = [mock_slide]
 
-    with patch("pptx.Presentation", return_value=mock_prs):
+    with patch("utils.extractors.Presentation", return_value=mock_prs):
         result = extract_pptx("deck.pptx")
 
     assert "Non-blank text" in result

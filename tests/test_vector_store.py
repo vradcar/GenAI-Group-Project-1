@@ -1,17 +1,22 @@
 """Tests for storage/vector_store.py — uses real ChromaDB with temp dirs."""
 
-import tempfile
+
 import pytest
 from unittest.mock import patch
 
 
 @pytest.fixture
-def temp_data_dir():
-    """Create a temp directory and patch DATA_DIR to use it."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with patch("storage.vector_store.DATA_DIR", tmpdir):
-            with patch("utils.config.DATA_DIR", tmpdir):
-                yield tmpdir
+def temp_data_dir(tmp_path):
+    """Redirect DATA_ROOT to a temp directory so ChromaDB writes there."""
+    data_root = tmp_path / "data"
+    with patch("utils.config.DATA_ROOT", data_root), \
+         patch("storage.notebook_store.DATA_ROOT", data_root):
+        # Clear the module-level client cache so each test gets a fresh client
+        import storage.vector_store as _vs
+        _vs._clients.clear()
+        yield str(data_root)
+        # Clean up client cache to release file locks (Windows)
+        _vs._clients.clear()
 
 
 def test_add_and_query_documents(temp_data_dir):

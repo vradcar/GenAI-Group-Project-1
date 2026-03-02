@@ -12,7 +12,6 @@ Responsibilities:
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 from storage.notebook_store import get_artifact_dir, touch_notebook
 from utils.security import safe_path

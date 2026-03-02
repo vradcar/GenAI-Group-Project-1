@@ -1,14 +1,7 @@
 """Tests for utils/security.py"""
 
-# TODO: Test sanitize_filename
-# TODO: Test sanitize_notebook_name
-# TODO: Test sanitize_username
-# TODO: Test validate_path (happy path + path traversal rejection)
-# TODO: Test generate_notebook_id (format, uniqueness)
-
 import re
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -34,7 +27,7 @@ UUID4_RE = re.compile(
 
 
 # ===========================================================================
-# TODO: Test sanitize_filename
+# sanitize_filename
 # ===========================================================================
 
 class TestSanitizeFilename:
@@ -177,7 +170,7 @@ class TestSanitizeFilename:
 
 
 # ===========================================================================
-# TODO: Test sanitize_notebook_name
+# sanitize_notebook_name
 # ===========================================================================
 
 class TestSanitizeNotebookName:
@@ -277,7 +270,7 @@ class TestSanitizeNotebookName:
 
 
 # ===========================================================================
-# TODO: Test sanitize_username
+# sanitize_username
 # ===========================================================================
 
 class TestSanitizeUsername:
@@ -363,7 +356,7 @@ class TestSanitizeUsername:
 
 
 # ===========================================================================
-# TODO: Test validate_path (happy path + path traversal rejection)
+# validate_path
 # ===========================================================================
 
 class TestValidatePath:
@@ -455,7 +448,7 @@ class TestValidatePath:
 
 
 # ===========================================================================
-# TODO: Test generate_notebook_id (format, uniqueness)
+# generate_notebook_id
 # ===========================================================================
 
 class TestGenerateNotebookId:

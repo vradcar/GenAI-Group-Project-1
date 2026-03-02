@@ -44,7 +44,7 @@ metadata.json, files_raw/, files_extracted/, chroma/, chat/, artifacts/
 
 ## Key Technical Details
 
-- **LLM:** Groq API (OpenAI-compatible SDK) with Llama 3.1 70B primary, 8B fallback
+- **LLM:** Groq API (OpenAI-compatible SDK) with Llama 3.3 70B (`llama-3.3-70b-versatile`) primary, 8B (`llama-3.1-8b-instant`) fallback
 - **Embeddings:** sentence-transformers `all-MiniLM-L6-v2` (local, not API)
 - **Vector DB:** ChromaDB with persistent per-notebook storage
 - **TTS:** edge-tts with `en-US-AriaNeural` voice for podcast generation
