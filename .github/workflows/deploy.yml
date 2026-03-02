@@ -29,9 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
       - name: Push to HF Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git remote add hf https://huggingface.co/spaces/${{ vars.HF_SPACE_NAME }}
           git push --force https://user:$HF_TOKEN@huggingface.co/spaces/${{ vars.HF_SPACE_NAME }} main
