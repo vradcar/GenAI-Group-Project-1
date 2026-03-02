@@ -1,3 +1,15 @@
+---
+title: StudyPod
+emoji: 📚
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: "6.8.0"
+python_version: "3.11"
+app_file: app.py
+pinned: false
+---
+
 # StudyPod — NotebookLM Clone
 
 > ITCS 5010 GenAI Group Project 1
