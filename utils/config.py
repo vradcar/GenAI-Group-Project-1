@@ -31,8 +31,15 @@ TOP_K = 5
 RERANK_CANDIDATES = 20
 MULTI_QUERY_VARIANTS = 3
 
-# ── TTS ──────────────────────────────────────────────────────
-TTS_VOICE = "en-US-AriaNeural"
+# ── TTS (two-speaker podcast) ────────────────────────────────
+TTS_VOICE = "en-US-AriaNeural"            # legacy single-voice fallback
+TTS_HOST_A_VOICE = "en-US-AndrewNeural"   # energetic / upbeat host
+TTS_HOST_A_RATE = "+12%"
+TTS_HOST_A_PITCH = "+3Hz"
+TTS_HOST_B_VOICE = "en-US-GuyNeural"      # chill / deeper host
+TTS_HOST_B_RATE = "-4%"
+TTS_HOST_B_PITCH = "-2Hz"
+TTS_MAX_CHARS = 5000                      # cap per-podcast to ~7 min audio
 
 # ── Storage ──────────────────────────────────────────────────
 DATA_DIR = os.getenv("DATA_DIR", "data")

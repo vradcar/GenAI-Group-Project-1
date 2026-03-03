@@ -187,7 +187,7 @@ class TestGeneratePodcast:
         coll = _mock_collection()
         podcast_dir = tmp_path / "podcasts"
         fake_response = _fake_llm(
-            "[Host 1] Welcome to the show!\n[Host 2] Today we discuss physics."
+            "[Alex]: Welcome to the show!\n[Sam]: Today we discuss physics."
         )
 
         async def fake_tts_save(path):
@@ -221,7 +221,7 @@ class TestGeneratePodcast:
 
         coll = _mock_collection()
         podcast_dir = tmp_path / "podcasts"
-        fake_response = _fake_llm("[Host 1] Hello!\n[Host 2] Goodbye!")
+        fake_response = _fake_llm("[Alex]: Hello!\n[Sam]: Goodbye!")
 
         with patch("storage.vector_store.get_or_create_collection", return_value=coll), \
              patch("core.artifacts.llm_client.complete", return_value=fake_response), \
@@ -232,3 +232,64 @@ class TestGeneratePodcast:
         assert transcript_path is not None
         assert Path(transcript_path).exists()
         assert audio_path is None
+
+
+# ---------------------------------------------------------------------------
+# _parse_transcript helper
+# ---------------------------------------------------------------------------
+
+class TestParseTranscript:
+    """Unit tests for the two-speaker transcript parser."""
+
+    def test_basic_two_speakers(self):
+        from core.artifacts import _parse_transcript
+
+        text = "[Alex]: Hello there!\n[Sam]: Hey, welcome!"
+        segs = _parse_transcript(text)
+        assert segs == [("A", "Hello there!"), ("B", "Hey, welcome!")]
+
+    def test_merges_adjacent_same_speaker(self):
+        from core.artifacts import _parse_transcript
+
+        text = "[Alex]: Line one.\n[Alex]: Line two.\n[Sam]: Response."
+        segs = _parse_transcript(text)
+        assert len(segs) == 2
+        assert segs[0] == ("A", "Line one. Line two.")
+        assert segs[1] == ("B", "Response.")
+
+    def test_continuation_lines_appended(self):
+        from core.artifacts import _parse_transcript
+
+        text = "[Sam]: Start here.\nMore of Sam talking.\n[Alex]: Ok!"
+        segs = _parse_transcript(text)
+        assert len(segs) == 2
+        assert "More of Sam talking" in segs[0][1]
+        assert segs[1] == ("A", "Ok!")
+
+    def test_case_insensitive(self):
+        from core.artifacts import _parse_transcript
+
+        text = "[ALEX]: Yell!\n[sam]: Whisper."
+        segs = _parse_transcript(text)
+        assert segs == [("A", "Yell!"), ("B", "Whisper.")]
+
+    def test_bold_markdown_labels(self):
+        from core.artifacts import _parse_transcript
+
+        text = "**Alex:** Bold label.\n**Sam:** Also bold."
+        segs = _parse_transcript(text)
+        assert len(segs) == 2
+        assert segs[0][0] == "A"
+        assert segs[1][0] == "B"
+
+    def test_empty_transcript(self):
+        from core.artifacts import _parse_transcript
+
+        assert _parse_transcript("") == []
+        assert _parse_transcript("   \n\n  ") == []
+
+    def test_no_speaker_labels(self):
+        from core.artifacts import _parse_transcript
+
+        text = "Just some random text with no labels."
+        assert _parse_transcript(text) == []
