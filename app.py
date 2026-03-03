@@ -86,14 +86,15 @@ def _citations_markdown(citations) -> str:
 # Build the Gradio app
 # ---------------------------------------------------------------------------
 
+CUSTOM_CSS = """
+    .source-list { max-height: 200px; overflow-y: auto; }
+    footer { display: none !important; }
+"""
+
+
 def build_app() -> gr.Blocks:
     with gr.Blocks(
         title="StudyPod — NotebookLM Clone",
-        theme=gr.themes.Soft(),
-        css="""
-            .source-list { max-height: 200px; overflow-y: auto; }
-            footer { display: none !important; }
-        """,
     ) as demo:
 
         # ── Hidden state ──────────────────────────────────────
@@ -161,7 +162,7 @@ def build_app() -> gr.Blocks:
 
                     # ── Chat tab ──────────────────────
                     with gr.TabItem("💬 Chat"):
-                        chatbot = gr.Chatbot(label="Chat", height=420, type="messages")
+                        chatbot = gr.Chatbot(label="Chat", height=420)
                         with gr.Row():
                             rag_technique = gr.Dropdown(
                                 label="RAG technique",
@@ -573,4 +574,4 @@ def build_app() -> gr.Blocks:
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     app = build_app()
-    app.launch()
+    app.launch(theme=gr.themes.Soft(), css=CUSTOM_CSS)
