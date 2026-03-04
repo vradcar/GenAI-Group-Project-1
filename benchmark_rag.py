@@ -19,20 +19,20 @@ import time
 import uuid
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+from core.ingestion import _chunk_text
+from core.rag import query as rag_query
+from storage import vector_store
+from utils.config import DATA_ROOT
+
 # ---------------------------------------------------------------------------
 # Bootstrap — make sure project root is on sys.path
 # ---------------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from dotenv import load_dotenv
-
 load_dotenv()
-
-from core.ingestion import _chunk_text          # noqa: E402
-from core.rag import query as rag_query         # noqa: E402
-from storage import vector_store                # noqa: E402
-from utils.config import DATA_ROOT              # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Sample document — a short educational article for testing
